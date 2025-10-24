@@ -53,8 +53,25 @@ export function AuthModal({ visible, onClose, onSuccess }: AuthModalProps) {
 
       if (success) {
         resetForm();
-        onSuccess();
-        onClose();
+        if (isLogin) {
+          onSuccess();
+          onClose();
+        } else {
+          // Para registro, mostrar mensaje diferente
+          Alert.alert(
+            'Registro exitoso',
+            'Tu cuenta ha sido creada. Si necesitas confirmar tu email, revisa tu bandeja de entrada.',
+            [
+              {
+                text: 'OK',
+                onPress: () => {
+                  onSuccess();
+                  onClose();
+                }
+              }
+            ]
+          );
+        }
       } else {
         Alert.alert(
           'Error',

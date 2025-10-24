@@ -1,13 +1,13 @@
 import { useState, useEffect } from 'react';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/contexts/AuthContext';
 
 export interface FavoriteQuote {
   id: string;
-  text: string;
-  author: string;
-  category?: string;
-  dateAdded: string;
+  quote_text: string;
+  quote_author: string;
+  quote_category?: string;
+  created_at: string;
 }
 
 export function useFavorites() {
@@ -16,7 +16,7 @@ export function useFavorites() {
   const { user, isAuthenticated } = useAuth();
 
   useEffect(() => {
-    if (isAuthenticated) {
+    if (isAuthenticated && user) {
       loadFavorites();
     } else {
       setFavorites([]);
@@ -28,10 +28,18 @@ export function useFavorites() {
     try {
       if (!user) return;
       
-      const storedFavorites = await AsyncStorage.getItem(`favorites_${user.id}`);
-      if (storedFavorites) {
-        setFavorites(JSON.parse(storedFavorites));
+      const { data, error } = await supabase
+        .from('favorite_quotes')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        console.error('Error loading favorites:', error);
+        return;
       }
+
+      setFavorites(data || []);
     } catch (error) {
       console.error('Error loading favorites:', error);
     } finally {
@@ -39,53 +47,68 @@ export function useFavorites() {
     }
   };
 
-  const saveFavorites = async (newFavorites: FavoriteQuote[]) => {
-    try {
-      if (!user) return;
-      
-      await AsyncStorage.setItem(`favorites_${user.id}`, JSON.stringify(newFavorites));
-      setFavorites(newFavorites);
-    } catch (error) {
-      console.error('Error saving favorites:', error);
-    }
-  };
-
   const addFavorite = async (quote: { text: string; author: string; category?: string }) => {
     if (!isAuthenticated || !user) return false;
 
-    const newFavorite: FavoriteQuote = {
-      id: Date.now().toString(),
-      text: quote.text,
-      author: quote.author,
-      category: quote.category,
-      dateAdded: new Date().toISOString(),
-    };
+    try {
+      const { data, error } = await supabase
+        .from('favorite_quotes')
+        .insert({
+          user_id: user.id,
+          quote_text: quote.text,
+          quote_author: quote.author,
+          quote_category: quote.category || null,
+        })
+        .select()
+        .single();
 
-    const updatedFavorites = [...favorites, newFavorite];
-    await saveFavorites(updatedFavorites);
-    return true;
+      if (error) {
+        console.error('Error adding favorite:', error);
+        return false;
+      }
+
+      setFavorites(prev => [data, ...prev]);
+      return true;
+    } catch (error) {
+      console.error('Error adding favorite:', error);
+      return false;
+    }
   };
 
-  const removeFavorite = async (quoteText: string) => {
+  const removeFavorite = async (quoteId: string) => {
     if (!isAuthenticated) return;
 
-    const updatedFavorites = favorites.filter(fav => fav.text !== quoteText);
-    await saveFavorites(updatedFavorites);
+    try {
+      const { error } = await supabase
+        .from('favorite_quotes')
+        .delete()
+        .eq('id', quoteId);
+
+      if (error) {
+        console.error('Error removing favorite:', error);
+        return;
+      }
+
+      setFavorites(prev => prev.filter(fav => fav.id !== quoteId));
+    } catch (error) {
+      console.error('Error removing favorite:', error);
+    }
   };
 
   const isFavorite = (quoteText: string): boolean => {
-    return favorites.some(fav => fav.text === quoteText);
+    return favorites.some(fav => fav.quote_text === quoteText);
   };
 
   const toggleFavorite = async (quote: { text: string; author: string; category?: string }): Promise<boolean> => {
     if (!isAuthenticated) return false;
 
-    if (isFavorite(quote.text)) {
-      await removeFavorite(quote.text);
+    const existingFavorite = favorites.find(fav => fav.quote_text === quote.text);
+    
+    if (existingFavorite) {
+      await removeFavorite(existingFavorite.id);
       return false;
     } else {
-      await addFavorite(quote);
-      return true;
+      return await addFavorite(quote);
     }
   };
 

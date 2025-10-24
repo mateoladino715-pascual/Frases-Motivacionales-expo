@@ -21,7 +21,7 @@ export default function FavoritesScreen() {
   const { favorites, removeFavorite, isAuthenticated } = useFavorites();
   const { user } = useAuth();
 
-  const handleRemoveFavorite = async (quoteText: string) => {
+  const handleRemoveFavorite = async (quoteId: string) => {
     Alert.alert(
       'Eliminar favorito',
       '¿Estás seguro de que quieres eliminar esta frase de tus favoritos?',
@@ -30,7 +30,7 @@ export default function FavoritesScreen() {
         { 
           text: 'Eliminar', 
           style: 'destructive',
-          onPress: () => removeFavorite(quoteText)
+          onPress: () => removeFavorite(quoteId)
         }
       ]
     );
@@ -91,12 +91,12 @@ export default function FavoritesScreen() {
         ) : (
           favorites.map((favorite, index) => (
             <View key={favorite.id} style={styles.favoriteCard}>
-              <Text style={styles.favoriteText}>{favorite.text}</Text>
-              <Text style={styles.favoriteAuthor}>— {favorite.author}</Text>
+              <Text style={styles.favoriteText}>{favorite.quote_text}</Text>
+              <Text style={styles.favoriteAuthor}>— {favorite.quote_author}</Text>
               
               <TouchableOpacity 
                 style={styles.removeButton}
-                onPress={() => handleRemoveFavorite(favorite.text)}
+                onPress={() => handleRemoveFavorite(favorite.id)}
               >
                 <Trash2 size={18} color="#EF4444" />
               </TouchableOpacity>

@@ -3,12 +3,9 @@ import {
   View,
   Text,
   StyleSheet,
-  ScrollView,
   TouchableOpacity,
   TextInput,
   Alert,
-  KeyboardAvoidingView,
-  Platform,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { User, Mail, CreditCard as Edit3, Save, LogOut, CircleUser as UserCircle } from 'lucide-react-native';
@@ -50,21 +47,6 @@ export default function ProfileScreen() {
     setEditedName(user?.name || '');
     setEditedEmail(user?.email || '');
     setIsEditing(false);
-  };
-
-  const handleLogout = () => {
-    Alert.alert(
-      'Cerrar sesión',
-      '¿Estás seguro de que quieres cerrar sesión?',
-      [
-        { text: 'Cancelar', style: 'cancel' },
-        { 
-          text: 'Cerrar sesión', 
-          style: 'destructive',
-          onPress: logout
-        }
-      ]
-    );
   };
 
   if (!isAuthenticated) {
@@ -114,115 +96,104 @@ export default function ProfileScreen() {
       start={{ x: 0, y: 0 }}
       end={{ x: 1, y: 1 }}
     >
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={styles.keyboardView}
-      >
-        <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-          <View style={styles.header}>
-            <Text style={styles.headerTitle}>Mi Perfil</Text>
-            <Text style={styles.headerSubtitle}>
-              Gestiona tu información personal
-            </Text>
+      <View style={styles.header}>
+        <Text style={styles.headerTitle}>Mi Perfil</Text>
+        <Text style={styles.headerSubtitle}>
+          Gestiona tu información personal
+        </Text>
+      </View>
+
+      <View style={styles.profileCard}>
+        <View style={styles.avatarSection}>
+          <View style={styles.avatar}>
+            <User size={40} color="#667eea" />
+          </View>
+          <Text style={styles.welcomeText}>
+            ¡Hola, {user?.name}!
+          </Text>
+        </View>
+
+        <View style={styles.formSection}>
+          <View style={styles.inputGroup}>
+            <Text style={styles.inputLabel}>Nombre completo</Text>
+            <View style={styles.inputContainer}>
+              <User size={20} color="#667eea" style={styles.inputIcon} />
+              <TextInput
+                style={[styles.input, !isEditing && styles.inputDisabled]}
+                value={editedName}
+                onChangeText={setEditedName}
+                placeholder="Tu nombre completo"
+                placeholderTextColor="#9CA3AF"
+                editable={isEditing}
+                autoCapitalize="words"
+              />
+            </View>
           </View>
 
-          <View style={styles.profileCard}>
-            <View style={styles.avatarSection}>
-              <View style={styles.avatar}>
-                <User size={40} color="#667eea" />
-              </View>
-              <Text style={styles.welcomeText}>
-                ¡Hola, {user?.name}!
-              </Text>
+          <View style={styles.inputGroup}>
+            <Text style={styles.inputLabel}>Correo electrónico</Text>
+            <View style={styles.inputContainer}>
+              <Mail size={20} color="#667eea" style={styles.inputIcon} />
+              <TextInput
+                style={[styles.input, !isEditing && styles.inputDisabled]}
+                value={editedEmail}
+                onChangeText={setEditedEmail}
+                placeholder="tu@email.com"
+                placeholderTextColor="#9CA3AF"
+                editable={isEditing}
+                keyboardType="email-address"
+                autoCapitalize="none"
+              />
             </View>
+          </View>
 
-            <View style={styles.formSection}>
-              <View style={styles.inputGroup}>
-                <Text style={styles.inputLabel}>Nombre completo</Text>
-                <View style={styles.inputContainer}>
-                  <User size={20} color="#667eea" style={styles.inputIcon} />
-                  <TextInput
-                    style={[styles.input, !isEditing && styles.inputDisabled]}
-                    value={editedName}
-                    onChangeText={setEditedName}
-                    placeholder="Tu nombre completo"
-                    placeholderTextColor="#9CA3AF"
-                    editable={isEditing}
-                    autoCapitalize="words"
-                  />
-                </View>
-              </View>
-
-              <View style={styles.inputGroup}>
-                <Text style={styles.inputLabel}>Correo electrónico</Text>
-                <View style={styles.inputContainer}>
-                  <Mail size={20} color="#667eea" style={styles.inputIcon} />
-                  <TextInput
-                    style={[styles.input, !isEditing && styles.inputDisabled]}
-                    value={editedEmail}
-                    onChangeText={setEditedEmail}
-                    placeholder="tu@email.com"
-                    placeholderTextColor="#9CA3AF"
-                    editable={isEditing}
-                    keyboardType="email-address"
-                    autoCapitalize="none"
-                  />
-                </View>
-              </View>
-
-              <View style={styles.actionButtons}>
-                {!isEditing ? (
-                  <TouchableOpacity
-                    style={styles.editButton}
-                    onPress={() => setIsEditing(true)}
-                  >
-                    <Edit3 size={20} color="#FFFFFF" />
-                    <Text style={styles.editButtonText}>Editar Perfil</Text>
-                  </TouchableOpacity>
-                ) : (
-                  <View style={styles.editActions}>
-                    <TouchableOpacity
-                      style={styles.cancelButton}
-                      onPress={handleCancelEdit}
-                    >
-                      <Text style={styles.cancelButtonText}>Cancelar</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                      style={styles.saveButton}
-                      onPress={handleSaveProfile}
-                    >
-                      <Save size={20} color="#FFFFFF" />
-                      <Text style={styles.saveButtonText}>Guardar</Text>
-                    </TouchableOpacity>
-                  </View>
-                )}
-              </View>
-            </View>
-
-            <View style={styles.dangerZone}>
+          <View style={styles.actionButtons}>
+            {!isEditing ? (
               <TouchableOpacity
-                style={styles.logoutButton}
-                onPress={handleLogout}
+                style={styles.editButton}
+                onPress={() => setIsEditing(true)}
               >
-                <LogOut size={20} color="#EF4444" />
-                <Text style={styles.logoutButtonText}>Cerrar Sesión</Text>
+                <Edit3 size={20} color="#FFFFFF" />
+                <Text style={styles.editButtonText}>Editar Perfil</Text>
               </TouchableOpacity>
-            </View>
+            ) : (
+              <View style={styles.editActions}>
+                <TouchableOpacity
+                  style={styles.cancelButton}
+                  onPress={handleCancelEdit}
+                >
+                  <Text style={styles.cancelButtonText}>Cancelar</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.saveButton}
+                  onPress={handleSaveProfile}
+                >
+                  <Save size={20} color="#FFFFFF" />
+                  <Text style={styles.saveButtonText}>Guardar</Text>
+                </TouchableOpacity>
+              </View>
+            )}
           </View>
-        </ScrollView>
-      </KeyboardAvoidingView>
+        </View>
+
+        <View style={styles.dangerZone}>
+          <TouchableOpacity
+            style={styles.logoutButton}
+            onPress={async () => {
+              await logout();
+            }}
+          >
+            <LogOut size={20} color="#EF4444" />
+            <Text style={styles.logoutButtonText}>Cerrar Sesión</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
     </LinearGradient>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
-  },
-  keyboardView: {
-    flex: 1,
-  },
-  scrollView: {
     flex: 1,
   },
   header: {
